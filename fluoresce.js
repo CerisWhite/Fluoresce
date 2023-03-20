@@ -55,15 +55,14 @@ async function ForceSaveDatabases() {
 async function ColdLoop() {
 	while (true) {
 	while (IsForceSave == 0) {
-		await Delay(600);
-		console.log("Loop");
+		await Delay(600000);
 		const DBList = Object.keys(MasterObject);
 		for (let ent in DBList) {
 			const ExistData = MasterObject[DBList[ent]];
 			const ExpectPath = path.join(process.cwd(), "saved", DBList[ent]);
 			const UserList = Object.keys(ExistData);
 			for (let u in UserList) {
-				if (ExistData[UserList[u]]['lastinteraction'] < (Math.floor(Date.now() / 1000) - 1)) {
+				if (ExistData[UserList[u]]['lastinteraction'] < (Math.floor(Date.now() / 1000) - 600)) {
 					const UserData = ExistData[UserList[u]];
 					const UserName = UserList[u] + ".gz";
 					const UserPath = path.join(process.cwd(), "saved", DBList[ent], UserName);
