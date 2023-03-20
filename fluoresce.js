@@ -15,28 +15,24 @@ async function Delay(Time) {
 	return;
 }
 
-function ReadUserData(Parsed) {
-	if (MasterObject[Parsed['destination']][String(Parsed['userid'])] == undefined) {
-		if (fs.existsSync(path.join(process.cwd(), "saved", Parsed['destination'], String(Parsed['userid'])))) {
-			MasterObject[Parsed['destination']][String(Parsed['userid'])] = zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), "saved", Parsed['destination'], String(Parsed['userid']))));
+function ReadUserData(Destination, UserID) {
+	if (MasterObject[Destination][UserID] == undefined) {
+		if (fs.existsSync(path.join(process.cwd(), "saved", Destination, UserID))) {
+			MasterObject[Destination][UserID] = zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), "saved", Destination, UserID)));
 		}
 		else {
-			MasterObject[Parsed['destination']][String(Parsed['userid'])] = {};
+			MasterObject[Destination][UserID] = {};
 		}
 	}
-	MasterObject[Parsed['destination']][String(Parsed['userid'])]['lastinteraction'] = Math.floor(Date.now() / 1000);
-	return JSON.stringify({ 'result': 0, 'data': MasterObject[Parsed['destination']][String(Parsed['userid'])]['data'] });
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify(MasterObject[Destination][UserID]['data']);
 }
-function WriteUserData(Parsed) {
-	const Destination = Parsed['destination'];
-	const UserID = Parsed['userid'];
-	if (MasterObject[Destination][String(UserID)] == undefined) { MasterObject[Destination][String(UserID)] = {}; }
-	MasterObject[Destination][String(UserID)]['data'] = Parsed['data'];
-	while (typeof MasterObject[Destination][String(UserID)]['data'] == Object) { Delay(30); }
-	if (MasterObject[Destination][String(UserID)]['lastinteraction'] < Parsed['lastinteraction']) {
-		MasterObject[Destination][String(UserID)]['lastinteraction'] = Parsed['lastinteraction'];
-	}
-	return JSON.stringify({ 'result': 0 });
+function WriteUserData(Destination, UserID, Data) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = {}; }
+	MasterObject[Destination][UserID]['data'] = Data;
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
 }
 async function ForceSaveDatabases() {
 	IsForceSave = 1;
@@ -59,20 +55,21 @@ async function ForceSaveDatabases() {
 async function ColdLoop() {
 	while (true) {
 	while (IsForceSave == 0) {
-		Delay(600000);
+		await Delay(600);
+		console.log("Loop");
 		const DBList = Object.keys(MasterObject);
 		for (let ent in DBList) {
 			const ExistData = MasterObject[DBList[ent]];
 			const ExpectPath = path.join(process.cwd(), "saved", DBList[ent]);
 			const UserList = Object.keys(ExistData);
 			for (let u in UserList) {
-				if (ExistData[UserList[u]]['lastinteraction'] < (Math.floor(Date.now() / 1000) - 600)) {
+				if (ExistData[UserList[u]]['lastinteraction'] < (Math.floor(Date.now() / 1000) - 1)) {
 					const UserData = ExistData[UserList[u]];
 					const UserName = UserList[u] + ".gz";
 					const UserPath = path.join(process.cwd(), "saved", DBList[ent], UserName);
 					fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
 					
-					delete MasterObject[DBList[ent][UserList[u]];
+					delete MasterObject[DBList[ent]][UserList[u]];
 				}
 			}
 		}
@@ -82,40 +79,52 @@ async function ColdLoop() {
 net.createServer((socket) => {
 	socket.on('data', (Input) => {
 		// Expected input: { 'type': "write", 'destination': "xyz", 'userid': 1000, 'data': {} }
-		let Result = { 'result': false };
+		let Result = {};
 		const Parsed = JSON.parse(Input);
 		const Destination = Parsed['destination'];
 		const UserID = Parsed['userid'];
 		switch(Parsed['type']) {
 			case "create":
-				MasterObject[Destination] = {};
-				const ExpectPath = path.join(process.cwd(), "saved", Parsed['destination']);
+				if (MasterObject[Destination] == undefined) { MasterObject[Destination] = {}; }
+				const ExpectPath = path.join(process.cwd(), "saved", Destination);
 				if (!fs.existsSync(ExpectPath)) { fs.mkdirSync(ExpectPath); }
-				Result['result'] = 0;
 				Result = JSON.stringify(Result);
 				break;
 			case "destroy":
 				delete MasterObject[Destination];
-				Result['result'] = 0;
 				Result = JSON.stringify(Result);
 				break;
 			case "forcesave":
 				ForceSaveDatabases();
-				Result['result'] = 0;
 				Result = JSON.stringify(Result);
 				break;
 			case "shutdown":
-				Result['result'] = 0;
+				Result = JSON.stringify(Result);
+				break;
+			case "exists":
+				Result['exists'] = false;
+				if (UserID > 0) {
+					try {
+						if (MasterObject[Destination][String(UserID)] != undefined) {
+							Result['exists'] = true;
+						}
+					} catch { console.log("error"); }
+				}
+				else {
+					if (MasterObject[Destination] != undefined) {
+						Result['exists'] = true;
+					}
+				}
 				Result = JSON.stringify(Result);
 				break;
 			case "read":
-				Result = ReadUserData(Parsed);
+				Result = ReadUserData(Destination, String(UserID));
 				break;
 			case "write":
-				Result = WriteUserData(Parsed);
+				Result = WriteUserData(Destination, String(UserID), Parsed['data']);
 				break;
 		}
-		socket.write(Result);
+		socket.end(Result);
 	});
 }).listen(4781, "localhost");
 ColdLoop();
