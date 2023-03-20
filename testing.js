@@ -4,7 +4,7 @@ console.log("Running tests");
 
 function Create() {
 	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "create", 'destination': "Test1"}));
+	socket.write(JSON.stringify({'type': "create", 'destination': "Test1", 'userid': 0}));
 	socket.on("data", (data) => {
 		console.log(JSON.parse(data));
 		socket.destroy();
@@ -34,12 +34,35 @@ function ForceSave() {
 		socket.destroy();
 	});
 }
+function Exists() {
+	const socket = net.connect(4781, "localhost");
+	socket.write(JSON.stringify({'type': "exists", 'destination': "Test1", 'userid': 0 }));
+	socket.on("data", (data) => {
+		console.log(JSON.parse(data));
+		socket.destroy();
+	});
+}
+function ExistsUser() {
+	const socket = net.connect(4781, "localhost");
+	socket.write(JSON.stringify({'type': "exists", 'destination': "Test1", 'userid': 1000 }));
+	socket.on("data", (data) => {
+		console.log(JSON.parse(data));
+		socket.destroy();
+	});
+}
 async function Delay() {
-	await new Promise(resolve => setTimeout(resolve, 60));
+	await new Promise(resolve => setTimeout(resolve, 4000));
 }
 
-Create();
-Write();
-Delay();
-Read();
-ForceSave();
+
+
+function PerfOps() {
+	Create();
+	Delay();
+	Write();
+	Read();
+	//ForceSave();
+	Exists();
+	ExistsUser();
+}
+PerfOps();
