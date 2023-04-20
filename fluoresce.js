@@ -87,26 +87,31 @@ net.createServer((socket) => {
 				if (MasterObject[Destination] == undefined) { MasterObject[Destination] = {}; }
 				const ExpectPath = path.join(process.cwd(), "saved", Destination);
 				if (!fs.existsSync(ExpectPath)) { fs.mkdirSync(ExpectPath); }
+				Result['Success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "delete":
 				delete MasterObject[Destination][String(UserID)];
+				Result['Success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "destroy":
 				delete MasterObject[Destination];
+				Result['Success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "forcesave":
 				ForceSaveDatabases();
+				Result['Success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "shutdown":
+				Result['Success'] = false;
 				Result = JSON.stringify(Result);
 				break;
 			case "exists":
 				Result['exists'] = false;
-				if (UserID > 0) {
+				if (UserID > 0 || typeof UserID == String) {
 					try {
 						if (MasterObject[Destination][String(UserID)] != undefined) {
 							Result['exists'] = true;
