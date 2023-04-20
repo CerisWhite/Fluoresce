@@ -89,6 +89,10 @@ net.createServer((socket) => {
 				if (!fs.existsSync(ExpectPath)) { fs.mkdirSync(ExpectPath); }
 				Result = JSON.stringify(Result);
 				break;
+			case "delete":
+				delete MasterObject[Destination][String(UserID)];
+				Result = JSON.stringify(Result);
+				break;
 			case "destroy":
 				delete MasterObject[Destination];
 				Result = JSON.stringify(Result);
