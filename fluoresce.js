@@ -129,6 +129,7 @@ net.createServer((socket) => {
 				Result = ReadUserData(Destination, String(UserID));
 				break;
 			case "write":
+				if (UserID == 0) { Result['Success'] = false; socket.end(Result); return; }
 				Result = WriteUserData(Destination, String(UserID), Parsed['data']);
 				break;
 		}
