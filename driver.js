@@ -73,4 +73,14 @@ function Exists(Database, UserID) {
 	return false;
 }
 
-module.exports = { Create, Delete, Read, Write, Exists };
+function Save(Database) {
+	const socket = net.connect(4781, "127.0.0.1");
+	socket.write(JSON.stringify({'type': "forcesave", 'destination': Database }));
+	socket.on("data", (data) => {
+		Response = JSON.parse(data);
+		socket.destroy();
+		return Response;
+	});
+}
+
+module.exports = { Create, Delete, Read, Write, Exists, Save };
