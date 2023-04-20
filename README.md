@@ -13,7 +13,9 @@ or on Windows, you can use (Quiet)[http://www.joeware.net/freetools/tools/quiet/
 
 
 It's that simple
+
 ---
+
 ##Some more information:
 - Fluoresce is file-based. All of the data is stored in gzip'd plain-text inside a folder, which is the "database". All of this is saved inside of the `saved` directory, in the same directory as `fluoresce.js`. This may be changed in the future.
 - The commands available through the driver are `Create`, `Delete`, `Read`, `Write`, `Exists`.
