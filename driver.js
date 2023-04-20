@@ -42,6 +42,7 @@ function Read(Database, UserID) {
 }
 
 function Write(Database, UserID, Data) {
+	if (UserID == 0) { return false; }
 	const socket = net.connect(4781, "127.0.0.1");
 	socket.write(JSON.stringify({'type': "write", 'destination': Database, 'userid': UserID, 'data': Data }));
 	socket.on("data", (data) => {
