@@ -51,6 +51,19 @@ async function ForceSaveDatabases() {
 	IsForceSave = 0;
 	return 0;
 }
+async function ForceSaveDatabase(Database) {
+	IsForceSave = 1;
+	if (MasterObject[String(Database)] == undefined) { IsForceSave = 0; return 0; }
+	const UserList = MasterObject[String(Database)];
+	for (let u in UserList) {
+		const UserData = ExistData[UserList[u]];
+		const UserName = UserList[u] + ".gz";
+		const UserPath = path.join(process.cwd(), "saved", DBList[ent], UserName);
+		fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
+	}
+	IsForceSave = 0;
+	return 0;
+}
 
 async function ColdLoop() {
 	while (true) {
@@ -101,7 +114,10 @@ net.createServer((socket) => {
 				Result = JSON.stringify(Result);
 				break;
 			case "forcesave":
-				ForceSaveDatabases();
+				if (Destination != undefined) {
+					ForceSaveDatabase(Destination);
+				}
+				else { ForceSaveDatabases(); }
 				Result['Success'] = true;
 				Result = JSON.stringify(Result);
 				break;
@@ -135,5 +151,6 @@ net.createServer((socket) => {
 		}
 		socket.end(Result);
 	});
-}).listen(4781, "localhost");
+}).listen(4781, "127.0.0.1");
 ColdLoop();
+console.log("Fluoresce is listening.");
