@@ -13,7 +13,7 @@ You can run Fluoresce itself by downloading the repository and then creating a b
 
 `node ./fluoresce.js & disown`
 
-or on Windows, you can use (Quiet)[http://www.joeware.net/freetools/tools/quiet/index.htm] and do:
+or on Windows, you can use [Quiet](http://www.joeware.net/freetools/tools/quiet/index.htm) and do:
 
 `quiet node ./fluoresce.js`
 
