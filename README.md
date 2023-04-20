@@ -25,3 +25,4 @@ It's that simple
 - By default, Fluoresce will (hopefully) flush all of the data that has been "cold" for 600000ms/10min or longer.
 - Fluoresce returns "{}" or `undefined` when no data is present/an error has occurred.
 - The `shutdown` command currently does nothing because I'm not entirely sure what I want it to do yet.
+- UserID `0` isn't available for use, since this is used to change the context of some commands like Exists and Delete
