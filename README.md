@@ -3,12 +3,18 @@ Made for me to use with my projects, mostly.
 
 This server uses a TCP socket on port 4781 (bound to 127.0.0.1) to accept JSON information. Examples of this are in `testing.js`
 
+
 To use Fluoresce yourself, add the `driver.js` file to your project and use require to include it
+
 `const db = require('./external/driver.js')`
 
+
 You can run Fluoresce itself by downloading the repository and then creating a background process:
+
 `node ./fluoresce.js & disown`
+
 or on Windows, you can use (Quiet)[http://www.joeware.net/freetools/tools/quiet/index.htm] and do:
+
 `quiet node ./fluoresce.js`
 
 
