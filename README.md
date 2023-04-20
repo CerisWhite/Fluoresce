@@ -24,9 +24,9 @@ It's that simple
 
 ## Some more information:
 - Fluoresce is file-based. All of the data is stored in gzip'd plain-text inside a folder, which is the "database". All of this is saved inside of the `saved` directory, in the same directory as `fluoresce.js`. This may be changed in the future.
-- The commands available through the driver are `Create`, `Delete`, `Read`, `Write`, `Exists`.
+- The commands available through the driver are `Create`, `Delete`, `Read`, `Write`, `Exists`, and `Save`.
 - `Delete` and `Exists` operate slightly differently depending on if a `UserID` is passed. Delete will call `destroy` and delete the whole database if no UserID is present, while Exists will check if the requested database exists if no UserID is passed.
-- The driver does not currently include the `ForceSave`/`Save` function, though it exists in Fluoresce.
+- Similarly, `Save` changes to save all available databases if no database name is passed.
 - The `UserID` is stored as a string, so it can be anything, including numbers.
 - By default, Fluoresce will (hopefully) flush all of the data that has been "cold" for 600000ms/10min or longer.
 - Fluoresce returns "{}" or `undefined` when no data is present/an error has occurred.
