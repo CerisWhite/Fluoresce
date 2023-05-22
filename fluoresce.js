@@ -2,11 +2,12 @@ const net = require('net');
 const fs = require('fs');
 const zlib = require('zlib');
 const path = require('path');
+const DBDir = "dbdir"
 let IsForceSave = 0;
 
 let MasterObject = {};
-if (!fs.existsSync('./saved/')) { fs.mkdirSync('./saved'); }
-const ReloadDir = fs.readdirSync('./saved/');
+if (!fs.existsSync(path.join(process.cwd(), DBDir)) { fs.mkdirSync(path.join(process.cwd(), DBDir)); }
+const ReloadDir = fs.readdirSync(path.join(process.cwd(), DBDir));
 for (let e in ReloadDir) {
 	MasterObject[ReloadDir[e]] = {};
 }
@@ -17,8 +18,8 @@ async function Delay(Time) {
 
 function ReadUserData(Destination, UserID) {
 	if (MasterObject[Destination][UserID] == undefined) {
-		if (fs.existsSync(path.join(process.cwd(), "saved", Destination, UserID))) {
-			MasterObject[Destination][UserID] = zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), "saved", Destination, UserID)));
+		if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
+			MasterObject[Destination][UserID] = zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID)));
 		}
 		else {
 			MasterObject[Destination][UserID] = {};
@@ -39,12 +40,12 @@ async function ForceSaveDatabases() {
 	const DBList = Object.keys(MasterObject);
 	for (let ent in DBList) {
 		const ExistData = MasterObject[DBList[ent]];
-		const ExpectPath = path.join(process.cwd(), "saved", DBList[ent]);
+		const ExpectPath = path.join(process.cwd(), DBDir, DBList[ent]);
 		const UserList = Object.keys(ExistData);
 		for (let u in UserList) {
 			const UserData = ExistData[UserList[u]];
 			const UserName = UserList[u] + ".gz";
-			const UserPath = path.join(process.cwd(), "saved", DBList[ent], UserName);
+			const UserPath = path.join(process.cwd(), DBDir, DBList[ent], UserName);
 			fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
 		}
 	}
@@ -58,7 +59,7 @@ async function ForceSaveDatabase(Database) {
 	for (let u in UserList) {
 		const UserData = ExistData[UserList[u]];
 		const UserName = UserList[u] + ".gz";
-		const UserPath = path.join(process.cwd(), "saved", DBList[ent], UserName);
+		const UserPath = path.join(process.cwd(), DBDir, DBList[ent], UserName);
 		fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
 	}
 	IsForceSave = 0;
@@ -72,13 +73,13 @@ async function ColdLoop() {
 		const DBList = Object.keys(MasterObject);
 		for (let ent in DBList) {
 			const ExistData = MasterObject[DBList[ent]];
-			const ExpectPath = path.join(process.cwd(), "saved", DBList[ent]);
+			const ExpectPath = path.join(process.cwd(), DBDir, DBList[ent]);
 			const UserList = Object.keys(ExistData);
 			for (let u in UserList) {
 				if (ExistData[UserList[u]]['lastinteraction'] < (Math.floor(Date.now() / 1000) - 600)) {
 					const UserData = ExistData[UserList[u]];
 					const UserName = UserList[u] + ".gz";
-					const UserPath = path.join(process.cwd(), "saved", DBList[ent], UserName);
+					const UserPath = path.join(process.cwd(), DBDir, DBList[ent], UserName);
 					fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
 					
 					delete MasterObject[DBList[ent]][UserList[u]];
@@ -98,7 +99,7 @@ net.createServer((socket) => {
 		switch(Parsed['type']) {
 			case "create":
 				if (MasterObject[Destination] == undefined) { MasterObject[Destination] = {}; }
-				const ExpectPath = path.join(process.cwd(), "saved", Destination);
+				const ExpectPath = path.join(process.cwd(), DBDir, Destination);
 				if (!fs.existsSync(ExpectPath)) { fs.mkdirSync(ExpectPath); }
 				Result['Success'] = true;
 				Result = JSON.stringify(Result);
