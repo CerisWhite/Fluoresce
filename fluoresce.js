@@ -101,17 +101,17 @@ net.createServer((socket) => {
 				if (MasterObject[Destination] == undefined) { MasterObject[Destination] = {}; }
 				const ExpectPath = path.join(process.cwd(), DBDir, Destination);
 				if (!fs.existsSync(ExpectPath)) { fs.mkdirSync(ExpectPath); }
-				Result['Success'] = true;
+				Result['success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "delete":
 				delete MasterObject[Destination][String(UserID)];
-				Result['Success'] = true;
+				Result['success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "destroy":
 				delete MasterObject[Destination];
-				Result['Success'] = true;
+				Result['success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "forcesave":
@@ -119,11 +119,11 @@ net.createServer((socket) => {
 					ForceSaveDatabase(Destination);
 				}
 				else { ForceSaveDatabases(); }
-				Result['Success'] = true;
+				Result['success'] = true;
 				Result = JSON.stringify(Result);
 				break;
 			case "shutdown":
-				Result['Success'] = false;
+				Result['success'] = false;
 				Result = JSON.stringify(Result);
 				break;
 			case "exists":
@@ -146,7 +146,7 @@ net.createServer((socket) => {
 				Result = ReadUserData(Destination, String(UserID));
 				break;
 			case "write":
-				if (UserID == 0) { Result['Success'] = false; socket.end(Result); return; }
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
 				Result = WriteUserData(Destination, String(UserID), Parsed['data']);
 				break;
 		}
