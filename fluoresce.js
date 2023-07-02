@@ -19,7 +19,7 @@ async function Delay(Time) {
 function ReadUserData(Destination, UserID) {
 	if (MasterObject[Destination][UserID] == undefined) {
 		if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
-			MasterObject[Destination][UserID] = zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID)));
+			MasterObject[Destination][UserID] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID))));
 		}
 		else {
 			MasterObject[Destination][UserID] = {};
@@ -133,10 +133,18 @@ net.createServer((socket) => {
 						if (MasterObject[Destination][String(UserID)] != undefined) {
 							Result['exists'] = true;
 						}
+						else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
+							MasterObject[Destination][String(UserID)] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID))));
+							Result['exists'] = true;
+						}
 					} catch { console.log("error"); }
 				}
 				else {
 					if (MasterObject[Destination] != undefined) {
+						Result['exists'] = true;
+					}
+					else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
+						MasterObject[Destination] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination))));
 						Result['exists'] = true;
 					}
 				}
