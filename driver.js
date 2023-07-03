@@ -116,7 +116,8 @@ function Exists(Database, UserID) {
 			});
 			socket.on("end", () => {
 				socket.destroy();
-				resolve(JSON.parse(Response));
+				Response = JSON.parse(Response);
+				resolve(Response['exists']);
 			});
 		}
 		else {
@@ -126,7 +127,8 @@ function Exists(Database, UserID) {
 			});
 			socket.on("end", () => {
 				socket.destroy();
-				resolve(JSON.parse(Response));
+				Response = JSON.parse(Response);
+				resolve(Response['exists']);
 			});
 		}
 	});
