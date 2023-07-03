@@ -23,8 +23,8 @@ It's that simple
 ---
 
 ## Some more information:
-- Fluoresce is file-based. All of the data is stored in gzip'd plain-text inside a folder, which is the "database". All of this is saved inside of the `saved` directory, in the same directory as `fluoresce.js`. This may be changed in the future.
-- The commands available through the driver are `Create`, `Delete`, `Read`, `Write`, `Exists`, and `Save`.
+- Fluoresce is file-based. All of the data is stored in gzip'd plain-text inside a folder, which is the "database". All of this is saved inside of the `dbdir` directory, in the same directory as `fluoresce.js`. This may be changed in the future.
+- The commands available through the driver are `Create`, `Delete`, `Read`, `Write`, `DirectRead`, `DirectWrite`, `Exists`, `List`, and `Save`.
 - `Delete` and `Exists` operate slightly differently depending on if a `UserID` is passed. Delete will call `destroy` and delete the whole database if no UserID is present, while Exists will check if the requested database exists if no UserID is passed.
 - Similarly, `Save` changes to save all available databases if no database name is passed.
 - The `UserID` is stored as a string, so it can be anything, including numbers.
@@ -32,3 +32,4 @@ It's that simple
 - Fluoresce returns "{}" or `undefined` when no data is present/an error has occurred.
 - The `shutdown` command currently does nothing because I'm not entirely sure what I want it to do yet.
 - UserID `0` isn't available for use, since this is used to change the context of some commands like Exists and Delete
+- `DirectRead` and `DirectWrite` will bypass the live data if it isn't present in the database, and operate on the file directly. This is used for modifying data in all files to avoid loading everything into memory at once.
