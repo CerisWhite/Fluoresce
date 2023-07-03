@@ -120,12 +120,16 @@ async function ColdLoop() {
 }
 
 net.createServer((socket) => {
+	let Parsed = "";
 	socket.on('data', (Input) => {
 		// Expected input: { 'type': "write", 'destination': "xyz", 'userid': 1000, 'data': {} }
-		let Result = {};
-		const Parsed = JSON.parse(Input);
+		Parsed += Input;
+	});
+	socket.on('end', () => {
+		Parsed = JSON.parse(Parsed);
 		const Destination = Parsed['destination'];
 		const UserID = Parsed['userid'];
+		let Result = {};
 		switch(Parsed['type']) {
 			case "create":
 				if (MasterObject[Destination] == undefined) { MasterObject[Destination] = {}; }
