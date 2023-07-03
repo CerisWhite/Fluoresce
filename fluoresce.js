@@ -37,6 +37,34 @@ function WriteUserData(Destination, UserID, Data) {
 	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
 	return JSON.stringify({});
 }
+function DirectReadUserData(Destination, UserID) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	let Response = {};
+	if (MasterObject[Destination][UserID] != undefined) {
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+		Response = MasterObject[Destination][UserID]['data'];
+	}
+	else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
+		const UserData = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
+		Response = UserData['data'];
+	}
+	return JSON.stringify(Response);
+}
+function DirectWriteUserData(Destination, UserID, Data) {
+	const UserPath = path.join(process.cwd(), DBDir, Destination, UserID + ".gz");
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] != undefined) {
+		MasterObject[Destination][UserID]['data'] = Data;
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	else if (fs.existsSync(UserPath)) {
+		let UserData = JSON.parse(zlib.gunzipSync(fs.readFileSync(UserPath)));
+		UserData['data'] = Data;
+		UserData['lastinteraction'] = Math.floor(Date.now() / 1000);
+		fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
+	}
+	return JSON.stringify({});
+}
 async function ForceSaveDatabases() {
 	IsForceSave = 1;
 	const DBList = Object.keys(MasterObject);
@@ -135,7 +163,7 @@ net.createServer((socket) => {
 						if (MasterObject[Destination][String(UserID)] != undefined) {
 							Result['exists'] = true;
 						}
-						else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
+						else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
 							MasterObject[Destination][String(UserID)] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
 							Result['exists'] = true;
 						}
@@ -148,12 +176,26 @@ net.createServer((socket) => {
 				}
 				Result = JSON.stringify(Result);
 				break;
+			case "list":
+				const UserList = [];
+				for (let x in Object.keys(MasterObject[Destination])) {
+					UserList.push(Object.keys(MasterObject[Destination])[x]);
+				}
+				Result = JSON.stringify(UserList);
 			case "read":
 				Result = ReadUserData(Destination, String(UserID));
 				break;
 			case "write":
 				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
 				Result = WriteUserData(Destination, String(UserID), Parsed['data']);
+				break;
+			case "directread":
+				Result = DirectReadUserData(Destination, String(UserID));
+				break;
+			case "directwrite":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = DirectWriteUserData(Destination, String(UserID), Parsed['data']);
+				break;
 				break;
 		}
 		socket.end(Result);
