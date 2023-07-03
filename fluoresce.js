@@ -6,7 +6,7 @@ const DBDir = "dbdir"
 let IsForceSave = 0;
 
 let MasterObject = {};
-if (!fs.existsSync(path.join(process.cwd(), DBDir)) { fs.mkdirSync(path.join(process.cwd(), DBDir)); }
+if (!fs.existsSync(path.join(process.cwd(), DBDir))) { fs.mkdirSync(path.join(process.cwd(), DBDir)); }
 const ReloadDir = fs.readdirSync(path.join(process.cwd(), DBDir));
 for (let e in ReloadDir) {
 	MasterObject[ReloadDir[e]] = {};
@@ -17,16 +17,18 @@ async function Delay(Time) {
 }
 
 function ReadUserData(Destination, UserID) {
-	if (MasterObject[Destination][UserID] == undefined) {
-		if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
-			MasterObject[Destination][UserID] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID))));
-		}
-		else {
-			MasterObject[Destination][UserID] = {};
-		}
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	let Response = {};
+	if (MasterObject[Destination][UserID] != undefined) {
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+		Response = MasterObject[Destination][UserID]['data'];
 	}
-	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
-	return JSON.stringify(MasterObject[Destination][UserID]['data']);
+	else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
+		MasterObject[Destination][UserID] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+		Response = MasterObject[Destination][UserID]['data'];
+	}
+	return JSON.stringify(Response);
 }
 function WriteUserData(Destination, UserID, Data) {
 	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
@@ -55,11 +57,11 @@ async function ForceSaveDatabases() {
 async function ForceSaveDatabase(Database) {
 	IsForceSave = 1;
 	if (MasterObject[String(Database)] == undefined) { IsForceSave = 0; return 0; }
-	const UserList = MasterObject[String(Database)];
+	const UserList = Object.keys(MasterObject[String(Database)]);
 	for (let u in UserList) {
-		const UserData = ExistData[UserList[u]];
+		const UserData = MasterObject[String(Database)][UserList[u]];
 		const UserName = UserList[u] + ".gz";
-		const UserPath = path.join(process.cwd(), DBDir, DBList[ent], UserName);
+		const UserPath = path.join(process.cwd(), DBDir, Database, UserName);
 		fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
 	}
 	IsForceSave = 0;
@@ -128,23 +130,19 @@ net.createServer((socket) => {
 				break;
 			case "exists":
 				Result['exists'] = false;
-				if (UserID > 0 || typeof UserID == String) {
+				if (UserID != 0) {
 					try {
 						if (MasterObject[Destination][String(UserID)] != undefined) {
 							Result['exists'] = true;
 						}
 						else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
-							MasterObject[Destination][String(UserID)] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID))));
+							MasterObject[Destination][String(UserID)] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
 							Result['exists'] = true;
 						}
 					} catch { console.log("error"); }
 				}
 				else {
-					if (MasterObject[Destination] != undefined) {
-						Result['exists'] = true;
-					}
-					else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID))) {
-						MasterObject[Destination] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination))));
+					if (fs.existsSync(path.join(process.cwd(), DBDir, Destination))) {
 						Result['exists'] = true;
 					}
 				}
