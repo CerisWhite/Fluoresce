@@ -163,15 +163,14 @@ net.createServer((socket) => {
 			case "exists":
 				Result['exists'] = false;
 				if (UserID != 0) {
-					try {
-						if (MasterObject[Destination][String(UserID)] != undefined) {
-							Result['exists'] = true;
-						}
-						else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
-							MasterObject[Destination][String(UserID)] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
-							Result['exists'] = true;
-						}
-					} catch { console.log("error"); }
+					if (MasterObject[Destination] == undefined) { break; }
+					if (MasterObject[Destination][String(UserID)] != undefined) {
+						Result['exists'] = true;
+					}
+					else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
+						MasterObject[Destination][String(UserID)] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
+						Result['exists'] = true;
+					}
 				}
 				else {
 					if (fs.existsSync(path.join(process.cwd(), DBDir, Destination))) {
