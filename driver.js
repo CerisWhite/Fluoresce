@@ -144,7 +144,8 @@ function List(Database) {
 		});
 		socket.on("end", () => {
 			socket.destroy();
-			resolve(JSON.parse(Response));
+			const Result = JSON.parse(Response);
+			resolve(Result['list']);
 		});
 	});
 }
