@@ -181,11 +181,17 @@ net.createServer((socket) => {
 				Result = JSON.stringify(Result);
 				break;
 			case "list":
-				const UserList = [];
+				const UserList = { 'list': [] }
 				for (let x in Object.keys(MasterObject[Destination])) {
-					UserList.push(Object.keys(MasterObject[Destination])[x]);
+					UserList['list'].push(Object.keys(MasterObject[Destination])[x]);
+				}
+				const AllList = fs.readdirSync(path.join(__dirname, DBDir, Destination));
+				for (let y in AllList) {
+					const Sliced = AllList[y].slice(0, AllList[y].length - 3);
+					if (!UserList['list'].includes(Sliced)) { UserList['list'].push(Sliced); }
 				}
 				Result = JSON.stringify(UserList);
+				break;
 			case "read":
 				Result = ReadUserData(Destination, String(UserID));
 				break;
