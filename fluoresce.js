@@ -208,7 +208,7 @@ net.createServer((socket) => {
 				break;
 				break;
 		}
-		} catch (err) { console.log(err); }
+		} catch (err) { console.log(err); Result = JSON.stringify(Result); }
 		socket.end(Result);
 	});
 }).listen(4781, "127.0.0.1");
