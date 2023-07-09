@@ -121,16 +121,16 @@ async function ColdLoop() {
 
 net.createServer((socket) => {
 	let Parsed = "";
-	try {
 	socket.on('data', (Input) => {
 		// Expected input: { 'type': "write", 'destination': "xyz", 'userid': 1000, 'data': {} }
 		Parsed += Input;
 	});
 	socket.on('end', () => {
+		let Result = {};
+		try {
 		Parsed = JSON.parse(Parsed);
 		const Destination = Parsed['destination'];
 		const UserID = Parsed['userid'];
-		let Result = {};
 		switch(Parsed['type']) {
 			case "create":
 				if (MasterObject[Destination] == undefined) { MasterObject[Destination] = {}; }
@@ -208,9 +208,9 @@ net.createServer((socket) => {
 				break;
 				break;
 		}
+		} catch (err) { console.log(err); }
 		socket.end(Result);
 	});
-	} catch (err) { console.log(err); }
 }).listen(4781, "127.0.0.1");
 ColdLoop();
 console.log("Fluoresce is listening.");
