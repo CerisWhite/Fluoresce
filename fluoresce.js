@@ -2,6 +2,9 @@ const net = require('net');
 const fs = require('fs');
 const zlib = require('zlib');
 const path = require('path');
+process.on('uncaughtException', function (error) {
+   console.log(error.stack);
+});
 const DBDir = "dbdir"
 let IsForceSave = 0;
 
