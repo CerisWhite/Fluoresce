@@ -165,4 +165,20 @@ function Save(Database) {
 	});
 }
 
-module.exports = { Create, Delete, Read, Write, DirectRead, DirectWrite, Exists, List, Save };
+function Append(Database, UserID, Data) {
+	return new Promise((resolve, reject) => {
+		let Response = "";
+		if (UserID == 0) { return false; }
+		const socket = net.connect(4781, "127.0.0.1");
+		socket.end(JSON.stringify({ 'type': "append", 'destination': Database, 'userid': UserID, 'data': Data }));
+		socket.on("data", (data) => {
+			Response += data;
+		});
+		socket.on("end", () => {
+			socket.destroy();
+			resolve(JSON.parse(Response));
+		});
+	});
+}
+
+module.exports = { Create, Delete, Read, Write, DirectRead, DirectWrite, Exists, List, Save, Append };
