@@ -229,7 +229,7 @@ net.createServer((socket) => {
 				break;
 			case "append":
 				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
-				Result = AppendUserData(Destination, String(UserID), Parsed['data']);
+				Result = AppendData(Destination, String(UserID), Parsed['data']);
 				break;
 		}
 		} catch (err) { console.log(err); Result = JSON.stringify(Result); }
