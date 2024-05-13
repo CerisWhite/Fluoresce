@@ -5,11 +5,14 @@ const path = require('path');
 process.on('uncaughtException', function (error) {
    console.log(error.stack);
 });
-const DBDir = "dbdir"
+const DBDir = "database"
+const MaxAppendObjects = 10;
 let IsForceSave = 0;
 
 let MasterObject = {};
+let ArchiveObject = {};
 if (!fs.existsSync(path.join(process.cwd(), DBDir))) { fs.mkdirSync(path.join(process.cwd(), DBDir)); }
+if (!fs.existsSync(path.join(process.cwd(), DBDir, "Archive"))) { fs.mkdirSync(path.join(process.cwd(), DBDir, "Archive")); }
 const ReloadDir = fs.readdirSync(path.join(process.cwd(), DBDir));
 for (let e in ReloadDir) {
 	MasterObject[ReloadDir[e]] = {};
@@ -70,6 +73,8 @@ function DirectWriteUserData(Destination, UserID, Data) {
 }
 function AppendData(Destination, UserID, Data) {
 	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	Data['timestamp'] = Date.now();
+	
 	if (MasterObject[Destination][UserID] != undefined) {
 		MasterObject[Destination][UserID]['data'].push(Data);
 		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
@@ -83,6 +88,28 @@ function AppendData(Destination, UserID, Data) {
 		MasterObject[Destination][UserID] = {};
 		MasterObject[Destination][UserID]['data'] = [ Data ];
 		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	
+	if (ArchiveObject[Destination] == undefined) { ArchiveObject[Destination] = {}; }
+	if (ArchiveObject[Destination][UserID] == undefined) { ArchiveObject[Destination][UserID] = {}; }
+	if (!fs.existsSync(path.join(process.cwd(), DBDir, "Archive", Destination))) {
+		fs.mkdirSync(path.join(process.cwd(), DBDir, "Archive", Destination));
+	}
+	
+	if (MasterObject[Destination][UserID]['data'].length > MaxAppendObjects) {
+		const MoveObjectCount = (MasterObject[Destination][UserID]['data'].length - MaxAppendObjects);
+		let i = 0; while (i < MoveObjectCount) {
+			const ArchiveDate = new Date(MasterObject[Destination][UserID]['data'][0]['timestamp']);
+			const FormatDate = String(ArchiveDate.getDate()) + String(ArchiveDate.getMonth()) + String(ArchiveDate.getFullYear());
+			if (ArchiveObject[Destination][UserID][FormatDate] == undefined) {
+				ArchiveObject[Destination][UserID][FormatDate] = [];
+			}
+			else if (fs.existsSync(path.join(process.cwd(), DBDir, "Archive", Destination, UserID + "_" + FormatDate + ".gz"))) {
+				ArchiveObject[Destination][UserID][FormatDate] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, "Archive", Destination, UserID + "_" + FormatDate + ".gz"))));
+			}
+			ArchiveObject[Destination][UserID][FormatDate].push(MasterObject[Destination][UserID]['data'].shift());
+			i++;
+		}
 	}
 	return JSON.stringify({});
 }
@@ -138,6 +165,28 @@ async function ColdLoop() {
 			}
 		}
 	}}
+}
+
+async function ArchiveColdLoop() {
+	while (true) {
+		await Delay(600000);
+		const DBList = Object.keys(ArchiveObject);
+		for (let ent in DBList) {
+			const ExistData = ArchiveObject[DBList[ent]];
+			const ExpectPath = path.join(process.cwd(), DBDir, "Archive", DBList[ent]);
+			const UserList = Object.keys(ExistData);
+			for (let u in UserList) {
+				const ArchiveDate = Object.keys(ArchiveObject[DBList[ent]][UserList[u]]);
+				for (let d in ArchiveDate) {
+					const UserData = ExistData[UserList[u]][ArchiveDate[d]];
+					const UserName = UserList[u] + "_" + ArchiveDate[d] + ".gz";
+					const UserPath = path.join(process.cwd(), DBDir, "Archive", DBList[ent], UserName);
+					fs.writeFileSync(UserPath, zlib.gzipSync(JSON.stringify(UserData)));
+				}
+				delete ArchiveObject[DBList[ent]][UserList[u]];
+			}
+		}
+	}
 }
 
 net.createServer((socket) => {
@@ -237,4 +286,5 @@ net.createServer((socket) => {
 	});
 }).listen(4781, "127.0.0.1");
 ColdLoop();
+ArchiveColdLoop();
 console.log("Fluoresce is listening.");
