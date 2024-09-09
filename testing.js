@@ -1,68 +1,47 @@
-const net = require('net');
+const Fluoresce = require('./driver.js');
+
+async function InitDatabase() {
+	const IDStatus = await Fluoresce.Exists("MasterIDRecord");
+	const AccStatus = await Fluoresce.Exists("MasterAccountRecord");
+	const SessStatus = await Fluoresce.Exists("MasterSessionRecord");
+	const IndexStatus = await Fluoresce.Exists("MasterIndexRecord");
+	const AnalyticsStatus = await Fluoresce.Exists("AnalyticsRecord");
+	const DPSStatus = await Fluoresce.Exists("MasterDPSRecord");
+	const TeamStatus = await Fluoresce.Exists("MasterTeamRecord");
+	if (IDStatus == false) {
+		await Fluoresce.Create("MasterIDRecord");
+		await Fluoresce.Write("MasterIDRecord", "LastAssignedID", 9999999);
+		await Fluoresce.Write("MasterIDRecord", "LastGuildID", 10001);
+		await Fluoresce.Save("MasterIDRecord");
+	}
+	if (AccStatus == false) { await Fluoresce.Create("MasterAccountRecord"); }
+	if (SessStatus == false) { await Fluoresce.Create("MasterSessionRecord"); }
+	if (IndexStatus == false) {
+		await Fluoresce.Create("MasterIndexRecord");
+		const fs = require('fs');
+		const Save = JSON.parse(fs.readFileSync("/home/ceris/Downloads/savedata.json"))['data'];
+		await Fluoresce.Write("MasterIndexRecord", 1000000000, Save);
+	}
+	if (AnalyticsStatus == false) { await Fluoresce.Create("AnalyticsRecord"); }
+	if (DPSStatus == false) { await Fluoresce.Create("MasterDPSRecord"); }
+	if (TeamStatus == false) { await Fluoresce.Create("MasterTeamRecord"); }
+}
+InitDatabase();
 
 console.log("Running tests");
 
-function Create() {
-	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "create", 'destination': "Test1", 'userid': 0}));
-	socket.on("data", (data) => {
-		console.log(JSON.parse(data));
-		socket.destroy();
-	});
+async function Main() {
+	const ObjectTest = await Fluoresce.ReadObject("MasterIndexRecord", 1000000000, "user_data");
+	console.log(ObjectTest);
+	ObjectTest['crystal'] += 1000;
+	await Fluoresce.WriteObject("MasterIndexRecord", 1000000000, "user_data", ObjectTest);
+	const ObjectTest2 = await Fluoresce.ReadObject("MasterIndexRecord", 1000000000, "user_data");
+	console.log(ObjectTest2);
+	const ListTest1 = await Fluoresce.ReadObjectIndex("MasterIndexRecord", 1000000000, "material_list", {'valuename': "material_id", 'value': 104001041});
+	console.log(ListTest1);
+	ListTest1['quantity'] += 900;
+	await Fluoresce.WriteObjectIndex("MasterIndexRecord", 1000000000, "material_list", {'valuename': "material_id", 'value': 104001041}, ListTest1);
+	const ListTest2 = await Fluoresce.ReadObjectIndex("MasterIndexRecord", 1000000000, "material_list", {'valuename': "material_id", 'value': 104001041});
+	console.log(ListTest2);
 }
-function Write() {
-	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "write", 'destination': "Test1", 'userid': 1000, 'data': { 'examplestr': "Test", 'exampleint': 1 } }));
-	socket.on("data", (data) => {
-		console.log(JSON.parse(data));
-		socket.destroy();
-	});
-}
-function Read() {
-	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "read", 'destination': "Test1", 'userid': 1000 }));
-	socket.on("data", (data) => {
-		console.log(JSON.parse(data));
-		socket.destroy();
-	});
-}
-function ForceSave() {
-	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "forcesave", 'destination': "Test1", 'userid': 1000 }));
-	socket.on("data", (data) => {
-		console.log(JSON.parse(data));
-		socket.destroy();
-	});
-}
-function Exists() {
-	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "exists", 'destination': "Test1", 'userid': 0 }));
-	socket.on("data", (data) => {
-		console.log(JSON.parse(data));
-		socket.destroy();
-	});
-}
-function ExistsUser() {
-	const socket = net.connect(4781, "localhost");
-	socket.write(JSON.stringify({'type': "exists", 'destination': "Test1", 'userid': 1000 }));
-	socket.on("data", (data) => {
-		console.log(JSON.parse(data));
-		socket.destroy();
-	});
-}
-async function Delay() {
-	await new Promise(resolve => setTimeout(resolve, 4000));
-}
-
-
-
-function PerfOps() {
-	Create();
-	Delay();
-	Write();
-	Read();
-	//ForceSave();
-	Exists();
-	ExistsUser();
-}
-PerfOps();
+Main();

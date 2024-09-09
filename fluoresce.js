@@ -72,6 +72,167 @@ function DirectWriteUserData(Destination, UserID, Data) {
 	}
 	return JSON.stringify({});
 }
+function ReadUserDataIndex(Destination, UserID, IndexName, IndexValue) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	let Response = {};
+	if (MasterObject[Destination][UserID] != undefined) {
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
+		MasterObject[Destination][UserID] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
+		MasterObject[Destination][UserID]['warmtime'] = Math.floor(Date.now() / 1000);
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	
+	if (MasterObject[Destination][UserID] != undefined) {
+		for (const z in MasterObject[Destination][UserID]['data']) {
+			if (MasterObject[Destination][UserID]['data'][z][IndexName] == IndexValue) {
+				Response = MasterObject[Destination][UserID]['data'][z];
+				break;
+			}
+		}
+	}
+	
+	return JSON.stringify(Response);
+}
+function WriteUserDataIndex(Destination, UserID, IndexName, IndexValue, Data) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = { 'warmtime': Math.floor(Date.now() / 1000) }; }
+	if (MasterObject[Destination][UserID]['data'] == undefined) { MasterObject[Destination][UserID]['data'] = [ Data ]; }
+	else {
+		let SearchIndex = -1;
+		for (const z in MasterObject[Destination][UserID]['data']) {
+			if (MasterObject[Destination][UserID]['data'][z][IndexName] == IndexValue) {
+				SearchIndex = parseInt(z);
+				break;
+			}
+		}
+		if (SearchIndex == -1) { MasterObject[Destination][UserID]['data'].push(Data); }
+		else {
+			MasterObject[Destination][UserID]['data'][SearchIndex] = Data;
+		}
+	}
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
+}
+function DeleteUserDataIndex(Destination, UserID, IndexName, IndexValue) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = { 'warmtime': Math.floor(Date.now() / 1000) }; }
+	if (MasterObject[Destination][UserID]['data'] == undefined) { return JSON.stringify({}); }
+	else {
+		let SearchIndex = -1;
+		for (const z in MasterObject[Destination][UserID]['data']) {
+			if (MasterObject[Destination][UserID]['data'][z][IndexName] == IndexValue) {
+				SearchIndex = parseInt(z);
+				break;
+			}
+		}
+		if (SearchIndex != -1) { MasterObject[Destination][UserID]['data'].splice(SearchIndex, 1); }
+	}
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
+}
+function ReadUserDataObject(Destination, UserID, ObjectName) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	let Response = {};
+	if (MasterObject[Destination][UserID] != undefined) {
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
+		MasterObject[Destination][UserID] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
+		MasterObject[Destination][UserID]['warmtime'] = Math.floor(Date.now() / 1000);
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	
+	if (MasterObject[Destination][UserID] != undefined && MasterObject[Destination][UserID]['data'][ObjectName] != undefined) {
+		Response = MasterObject[Destination][UserID]['data'][ObjectName];
+	}
+	return JSON.stringify(Response);
+}
+function WriteUserDataObject(Destination, UserID, ObjectName, Data) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = { 'warmtime': Math.floor(Date.now() / 1000) }; }
+	if (MasterObject[Destination][UserID]['data'] == undefined) { MasterObject[Destination][UserID]['data'] = { ObjectName: Data }; }
+	else {
+		MasterObject[Destination][UserID]['data'][ObjectName] = Data;
+	}
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
+}
+function DeleteUserDataObject(Destination, UserID, ObjectName) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = { 'warmtime': Math.floor(Date.now() / 1000) }; }
+	if (MasterObject[Destination][UserID]['data'] == undefined) { return JSON.stringify({}); }
+	else {
+		delete MasterObject[Destination][UserID]['data'][ObjectName];
+	}
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
+}
+function ReadUserDataObjectIndex(Destination, UserID, ObjectName, IndexName, IndexValue) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	let Response = {};
+	if (MasterObject[Destination][UserID] != undefined) {
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	else if (fs.existsSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))) {
+		MasterObject[Destination][UserID] = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(process.cwd(), DBDir, Destination, UserID + ".gz"))));
+		MasterObject[Destination][UserID]['warmtime'] = Math.floor(Date.now() / 1000);
+		MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	}
+	
+	if (MasterObject[Destination][UserID] != undefined && MasterObject[Destination][UserID]['data'][ObjectName] != undefined) {
+		for (const z in MasterObject[Destination][UserID]['data'][ObjectName]) {
+			if (MasterObject[Destination][UserID]['data'][ObjectName][z][IndexName] == IndexValue) {
+				Response = MasterObject[Destination][UserID]['data'][ObjectName][z];
+				break;
+			}
+		}
+	}
+	
+	return JSON.stringify(Response);
+}
+function WriteUserDataObjectIndex(Destination, UserID, ObjectName, IndexName, IndexValue, Data) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = { 'warmtime': Math.floor(Date.now() / 1000) }; }
+	if (MasterObject[Destination][UserID]['data'] == undefined) { MasterObject[Destination][UserID]['data'] = { ObjectName: [ Data ] }; }
+	else if (MasterObject[Destination][UserID]['data'][ObjectName] == undefined) { MasterObject[Destination][UserID]['data'][ObjectName] = [ Data ]; }
+	else {
+		let SearchIndex = -1;
+		for (const z in MasterObject[Destination][UserID]['data'][ObjectName]) {
+			if (MasterObject[Destination][UserID]['data'][ObjectName][z][IndexName] == IndexValue) {
+				SearchIndex = parseInt(z);
+				break;
+			}
+		}
+		if (SearchIndex == -1) { MasterObject[Destination][UserID]['data'][ObjectName].push(Data); }
+		else {
+			MasterObject[Destination][UserID]['data'][ObjectName][SearchIndex] = Data;
+		}
+	}
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
+}
+function DeleteUserDataObjectIndex(Destination, UserID, ObjectName, IndexName, IndexValue) {
+	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
+	if (MasterObject[Destination][UserID] == undefined) { MasterObject[Destination][UserID] = { 'warmtime': Math.floor(Date.now() / 1000) }; }
+	if (MasterObject[Destination][UserID]['data'] == undefined) { JSON.stringify({}); }
+	else {
+		let SearchIndex = -1;
+		for (const z in MasterObject[Destination][UserID]['data'][ObjectName]) {
+			if (MasterObject[Destination][UserID]['data'][ObjectName][z][IndexName] == IndexValue) {
+				SearchIndex = parseInt(z);
+				break;
+			}
+		}
+		if (SearchIndex != -1) {
+			MasterObject[Destination][UserID]['data'][ObjectName].splice(SearchIndex, 1);
+		}
+	}
+	MasterObject[Destination][UserID]['lastinteraction'] = Math.floor(Date.now() / 1000);
+	return JSON.stringify({});
+}
+
 function AppendData(Destination, UserID, Data) {
 	if (MasterObject[Destination] == undefined) { return JSON.stringify({'exists': false}); }
 	Data['timestamp'] = Date.now();
@@ -283,6 +444,42 @@ net.createServer((socket) => {
 			case "directwrite":
 				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
 				Result = DirectWriteUserData(Destination, String(UserID), Parsed['data']);
+				break;
+			case "readindex":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = ReadUserDataIndex(Destination, String(UserID), Parsed['index']['valuename'], Parsed['index']['value']);
+				break;
+			case "writeindex":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = WriteUserDataIndex(Destination, String(UserID), Parsed['index']['valuename'], Parsed['index']['value'], Parsed['data']);
+				break;
+			case "deleteindex":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = DeleteUserDataIndex(Destination, String(UserID), Parsed['index']['valuename'], Parsed['index']['value']);
+				break;
+			case "readobject":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = ReadUserDataObject(Destination, String(UserID), Parsed['objectname']);
+				break;
+			case "writeobject":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = WriteUserDataObject(Destination, String(UserID), Parsed['objectname'], Parsed['data']);
+				break;
+			case "deleteobject":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = DeleteUserDataObject(Destination, String(UserID), Parsed['objectname']);
+				break;
+			case "readobjectindex":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = ReadUserDataObjectIndex(Destination, String(UserID), Parsed['objectname'], Parsed['index']['valuename'], Parsed['index']['value']);
+				break;
+			case "writeobjectindex":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = WriteUserDataObjectIndex(Destination, String(UserID), Parsed['objectname'], Parsed['index']['valuename'], Parsed['index']['value'], Parsed['data']);
+				break;
+			case "deleteobjectindex":
+				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
+				Result = DeleteUserDataObjectIndex(Destination, String(UserID), Parsed['objectname'], Parsed['index']['valuename'], Parsed['index']['value']);
 				break;
 			case "append":
 				if (UserID == 0) { Result['success'] = false; socket.end(Result); return; }
