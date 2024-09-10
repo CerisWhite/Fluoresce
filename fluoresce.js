@@ -402,7 +402,7 @@ net.createServer((socket) => {
 				break;
 			case "exists":
 				Result['exists'] = false;
-				if (UserID != 0) {
+				if (UserID != undefined) {
 					if (MasterObject[Destination] == undefined) { break; }
 					if (MasterObject[Destination][String(UserID)] != undefined) {
 						Result['exists'] = true;
