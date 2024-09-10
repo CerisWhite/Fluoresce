@@ -241,7 +241,7 @@ function Module.Exists(Database, UserID)
 		Response[#Response + 1] = Reply;
 	end;
 	Response = table.concat(Response);
-	return Response;
+	return Response['exists'];
 end;
 
 function Module.List(Database)
