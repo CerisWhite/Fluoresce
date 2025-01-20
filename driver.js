@@ -1,330 +1,191 @@
 // Fluoresce DB "driver"
 const net = require('net');
+const PassKey = "";
 
-function Create(Database) {
+function Perform(ToSend) {
+	ToSend['passkey'] = PassKey;
 	return new Promise((resolve, reject) => {
 		let Response = "";
 		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "create", 'destination': Database, 'userid': 0 }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function Delete(Database, UserID) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		if (UserID != undefined) {
-			socket.end(JSON.stringify({ 'type': "delete", 'destination': Database, 'userid': UserID }));
-			socket.on("data", (data) => {
-				Response += data;
-			});
-			socket.on("end", () => {
-				socket.destroy();
-				resolve(JSON.parse(Response));
-			});
-		}
-		else {
-			socket.end(JSON.stringify({ 'type': "destroy", 'destination': Database, 'userid': 0 }));
-			socket.on("data", (data) => {
-				Response += data;
-			});
-			socket.on("end", () => {
-				socket.destroy();
-				resolve(JSON.parse(Response));
-			});
-		}
-	});
-}
-
-function Read(Database, UserID) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "read", 'destination': Database, 'userid': UserID }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function Write(Database, UserID, Data) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		if (UserID == 0) { return false; }
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "write", 'destination': Database, 'userid': UserID, 'data': Data }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function DirectRead(Database, UserID) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "directread", 'destination': Database, 'userid': UserID }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function DirectWrite(Database, UserID, Data) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		if (UserID == 0) { return false; }
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "directwrite", 'destination': Database, 'userid': UserID, 'data': Data }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function ReadIndex(Database, UserID, Index) {
-	//Index: {'valuename': "", 'value': ?}
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "readindex", 'destination': Database, 'userid': UserID, 'index': Index }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function WriteIndex(Database, UserID, Index, Data) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		if (UserID == 0) { return false; }
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "writeindex", 'destination': Database, 'userid': UserID, 'index': Index, 'data': Data }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function DeleteIndex(Database, UserID, Index) {
-	//Index: {'valuename': "", 'value': ?}
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "deleteindex", 'destination': Database, 'userid': UserID, 'index': Index }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function ReadObject(Database, UserID, ObjectName) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "readobject", 'destination': Database, 'userid': UserID, 'objectname': ObjectName }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function WriteObject(Database, UserID, ObjectName, Data) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		if (UserID == 0) { return false; }
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "writeobject", 'destination': Database, 'userid': UserID, 'objectname': ObjectName, 'data': Data }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function DeleteObject(Database, UserID, ObjectName) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "deleteobject", 'destination': Database, 'userid': UserID, 'objectname': ObjectName }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function ReadObjectIndex(Database, UserID, ObjectName, Index) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "readobjectindex", 'destination': Database, 'userid': UserID, 'objectname': ObjectName, 'index': Index }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function WriteObjectIndex(Database, UserID, ObjectName, Index, Data) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		if (UserID == 0) { return false; }
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "writeobjectindex", 'destination': Database, 'userid': UserID, 'objectname': ObjectName, 'index': Index, 'data': Data }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function DeleteObjectIndex(Database, UserID, ObjectName, Index) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "deleteobjectindex", 'destination': Database, 'userid': UserID, 'objectname': ObjectName, 'index': Index }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-function Exists(Database, UserID) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		if (UserID != undefined) {
-			socket.end(JSON.stringify({ 'type': "exists", 'destination': Database, 'userid': UserID }));
-			socket.on("data", (data) => {
-				Response += data;
-			});
-			socket.on("end", () => {
-				socket.destroy();
-				Response = JSON.parse(Response);
-				resolve(Response['exists']);
-			});
-		}
-		else {
-			socket.end(JSON.stringify({ 'type': "exists", 'destination': Database, 'userid': 0 }));
-			socket.on("data", (data) => {
-				Response += data;
-			});
-			socket.on("end", () => {
-				socket.destroy();
-				Response = JSON.parse(Response);
-				resolve(Response['exists']);
-			});
-		}
-	});
-}
-
-function List(Database) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "list", 'destination': Database, 'userid': 0 }));
+		socket.end(JSON.stringify(ToSend));
 		socket.on("data", (data) => {
 			Response += data;
 		});
 		socket.on("end", () => {
 			socket.destroy();
 			Response = JSON.parse(Response);
-			resolve(Response['list']);
+			if (Response['error'] != 0) {
+				let Line = "Fluoresce: ";
+				switch(Response['error']) {
+					case 1:
+						Line += "The provided passkey is incorrect.";
+						break;
+					case 2:
+						Line += "The \"confirmation\" value is required for dangerous operations.";
+						break;
+					case 3:
+						Line += "A User ID value is required for Read/Write/Delete.";
+						break;
+					case 5:
+						Line += "Data required for write.";
+						break;
+					case 99:
+						Line += "The data sent was not valid JSON.";
+						break;
+				}
+				console.log(Line);
+				resolve(Response['error']);
+			}
+			else {
+				resolve(Response['data']);
+			}
 		});
+	});
+}
+
+function Create(Database, Type, Data, UserID) {
+	return Perform({
+		'type': "create",
+		'db': Database,
+		'createtype': Type != undefined ? Type : false,
+		'data': Data != undefined ? Data : false,
+		'userid': UserID != undefined ? UserID : false
+	});
+}
+function Destroy(Database, UserID, Confirmation) {
+	return Perform({
+		'type': "destroy",
+		'db': Database,
+		'userid': UserID != undefined ? UserID : false,
+		'confirmation': Confirmation != undefined ? Confirmation : false
+	});
+}
+
+function Read(Database, UserID, Target, Search) {
+	return Perform({
+		'type': "read",
+		'db': Database,
+		'userid': UserID,
+		'target': Target != undefined ? Target : false,
+		'search': Search != undefined ? Search : false
+	});
+}
+function DirectRead(Database, UserID) {
+	return Perform({
+		'type': "directread",
+		'db': Database,
+		'userid': UserID != undefined ? UserID : false
+	});
+}
+function ReadIncrement(Database, UserID) {
+	return Perform({
+		'type': "readincrement",
+		'db': Database,
+		'userid': UserID != undefined ? UserID : false
+	});
+}
+
+function Write(Database, UserID, Data, Target, Search) {
+	return Perform({
+		'type': "write",
+		'db': Database,
+		'userid': UserID,
+		'data': Data,
+		'target': Target != undefined ? Target : false,
+		'search': Search != undefined ? Search : false,
+	});
+}
+function DirectWrite(Database, UserID, Data) {
+	return Perform({
+		'type': "directwrite",
+		'db': Database,
+		'userid': UserID,
+		'data': Data
+	});
+}
+
+function Delete(Database, UserID, Target, Search, Confirmation) {
+	return Perform({
+		'type': "delete",
+		'db': Database,
+		'userid': UserID,
+		'target': Target != undefined ? Target : false,
+		'search': Search != undefined ? Search : false,
+		'confirmation': Confirmation != undefined ? Confirmation : false
+	});
+}
+
+function ReadList(Database, UserID, Count, KeyID, KeyValue) {
+	return Perform({
+		'type': "readlist",
+		'db': Database,
+		'userid': UserID,
+		'count': Count != undefined ? Count : false,
+		'keyname': KeyID != undefined ? KeyID : false,
+		'keyvalue': KeyValue != undefined ? KeyValue : false
+	});
+}
+function Append(Database, UserID, Data) {
+	return Perform({
+		'type': "append",
+		'db': Database,
+		'userid': UserID,
+		'data': Data
+	});
+}
+function QueryList(Database, UserID, Search) {
+	return Perform({
+		'type': "querylist",
+		'db': Database,
+		'userid': UserID,
+		'search': Search
+	});
+}
+
+function Exists(Database, UserID) {
+	return Perform({
+		'type': "exists",
+		'db': Database,
+		'userid': UserID != undefined ? UserID : false
+	});
+}
+
+function List(Database) {
+	return Perform({
+		'type': "list",
+		'db': Database
+	});
+}
+
+function Count(Database, UserID, Target) {
+	return Perform({
+		'type': "count",
+		'db': Database,
+		'userid': UserID != undefined ? UserID: false,
+		'target': Target != undefined ? Target : false
+	});
+}
+
+function CountUser(Database, UserID, Target) {
+	return Perform({
+		'type': "countusers",
+		'db': Database,
+		'userid': UserID != undefined ? UserID: false,
+		'target': Target != undefined ? Target : false
 	});
 }
 
 function Save(Database) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "forcesave", 'destination': Database }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
+	return Perform({
+		'type': "save",
+		'db': Database
 	});
 }
 
-function Append(Database, UserID, Data) {
-	return new Promise((resolve, reject) => {
-		let Response = "";
-		if (UserID == 0) { return false; }
-		const socket = net.connect(4781, "127.0.0.1");
-		socket.end(JSON.stringify({ 'type': "append", 'destination': Database, 'userid': UserID, 'data': Data }));
-		socket.on("data", (data) => {
-			Response += data;
-		});
-		socket.on("end", () => {
-			socket.destroy();
-			resolve(JSON.parse(Response));
-		});
-	});
-}
-
-module.exports = { Create, Delete,
-				   Read, Write,
-				   DirectRead, DirectWrite,
-				   ReadIndex, WriteIndex,
-				   ReadObject, WriteObject,
-				   ReadObjectIndex, WriteObjectIndex,
-				   Exists, List, Save, Append };
+module.exports = { Create, Destroy,
+				   Read, DirectRead, ReadIncrement,
+				   Write, DirectWrite,
+				   Delete,
+				   ReadList, QueryList, Append,
+				   Exists, List,
+				   Count, CountUser, Save };
